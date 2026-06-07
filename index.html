@@ -23,7 +23,7 @@
                 </h2>
                 <p class="text-xs text-gray-400 mb-4">
                     Introduce tu contraseña personal para descifrar la API Key
-                    de OpenRouter in memoria.
+                    de OpenRouter en memoria.
                 </p>
                 <input
                     id="passwordInput"
@@ -190,7 +190,7 @@
                     {
                         role: "system",
                         content:
-                            "Eres un asistente de programación experto. Cuando el usuario te proporcione código fuente con comentarios (como '// TODO', '// Pistas:' o '// ▼ Escribe tu código aquí ▼') y renglones vacíos creados con enter, debes respetar estrictamente la estructura original. 1. NO elimines ningún comentario preexistente. 2. NO añadas comentarios nuevos tuyos. 3. NO elimines ni alteres las líneas o renglones vacíos. Tu tarea es únicamente rellenar o modificar el código solicitado manteniendo intacto el resto del texto.",
+                            "REGLA DE ORO DE ESCRITURA: Eres un generador de código estricto. Cuando modifiques o completes código que contenga comentarios (como '// TODO', '// Pistas:' o '// ▼ Escribe tu código aquí ▼') y renglones vacíos, tienes prohibido alterar la estructura de saltos de línea existentes. Debes imprimir cada comentario y cada línea vacía exactamente en su propia línea independiente, tal y como viene en el texto original. PROHIBIDO concatenar múltiples comentarios o líneas de código en una sola línea horizontal continua. Mantén intactos todos los renglones del archivo original.",
                     },
                     ...chatHistory,
                 ];
