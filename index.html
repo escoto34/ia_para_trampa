@@ -23,7 +23,7 @@
                 </h2>
                 <p class="text-xs text-gray-400 mb-4">
                     Introduce tu contraseña personal para descifrar la API Key
-                    de OpenRouter en memoria.
+                    de OpenRouter in memoria.
                 </p>
                 <input
                     id="passwordInput"
@@ -185,9 +185,19 @@
             // ---------- CONEXIÓN STREAMING ----------
             async function streamOpenRouterResponse() {
                 const url = "https://openrouter.ai/api/v1/chat/completions";
+
+                const formattedMessages = [
+                    {
+                        role: "system",
+                        content:
+                            "Eres un asistente de programación experto. Cuando el usuario te proporcione código fuente con comentarios (como '// TODO', '// Pistas:' o '// ▼ Escribe tu código aquí ▼') y renglones vacíos creados con enter, debes respetar estrictamente la estructura original. 1. NO elimines ningún comentario preexistente. 2. NO añadas comentarios nuevos tuyos. 3. NO elimines ni alteres las líneas o renglones vacíos. Tu tarea es únicamente rellenar o modificar el código solicitado manteniendo intacto el resto del texto.",
+                    },
+                    ...chatHistory,
+                ];
+
                 const payload = {
                     model: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-                    messages: chatHistory,
+                    messages: formattedMessages,
                     stream: true,
                 };
 
