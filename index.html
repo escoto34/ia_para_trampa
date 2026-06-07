@@ -190,13 +190,13 @@
                     {
                         role: "system",
                         content:
-                            "REGLA DE ORO DE ESCRITURA: Eres un generador de código estricto. Cuando modifiques o completes código que contenga comentarios (como '// TODO', '// Pistas:' o '// ▼ Escribe tu código aquí ▼') y renglones vacíos, tienes prohibido alterar la estructura de saltos de línea existentes. Debes imprimir cada comentario y cada línea vacía exactamente en su propia línea independiente, tal y como viene en el texto original. PROHIBIDO concatenar múltiples comentarios o líneas de código en una sola línea horizontal continua. Mantén intactos todos los renglones del archivo original.",
+                            "REGLAS ESTRUCTURALES OBLIGATORIAS:\n1. Eres un formateador de código Dart/Flutter estricto de nivel senior. Tu prioridad absoluta es mantener la legibilidad vertical.\n2. NUNCA mezcles en una misma línea horizontal una instrucción de código (ej: 'Future<int> funcion() async {') junto con un comentario de tipo '//'. Todo comentario debe estar en su propia línea independiente arriba o abajo del código.\n3. Si detectas comentarios compactados horizontalmente en el prompt, tu deber es separarlos e insertar saltos de línea ('\\n') obligatorios para restaurar la estructura original limpia.\n4. Respeta de manera idéntica los comentarios originales (ej: '// TODO', '// Pistas:'), no elimines ningún renglón vacío original y no agregues comentarios de tu propia autoría.",
                     },
                     ...chatHistory,
                 ];
 
                 const payload = {
-                    model: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+                    model: "meta-llama/llama-3.3-70b-instruct:free",
                     messages: formattedMessages,
                     stream: true,
                 };
