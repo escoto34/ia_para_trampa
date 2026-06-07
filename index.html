@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Chat Interactivo Protegido — OpenRouter</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    </head>
+    <body
+        class="bg-gray-900 min-h-screen flex flex-col items-center justify-between p-4 text-gray-100"
+    >
+        <div
+            id="passwordPrompt"
+            class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+        >
+            <div
+                class="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm border border-gray-700"
+            >
+                <h2
+                    class="text-xl font-semibold text-white mb-2 flex items-center gap-2"
+                >
+                    🔒 Sistema Encriptado
+                </h2>
+                <p class="text-xs text-gray-400 mb-4">
+                    Introduce tu contraseña personal para descifrar la API Key
+                    de OpenRouter en memoria.
+                </p>
+                <input
+                    id="passwordInput"
+                    type="password"
+                    class="w-full p-2.5 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 text-sm mb-4"
+                    placeholder="Contraseña de descifrado..."
+                />
+                <button
+                    id="unlockBtn"
+                    class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors text-sm"
+                >
+                    Desbloquear Entorno
+                </button>
+            </div>
+        </div>
+
+        <header
+            class="w-full max-w-3xl flex justify-between items-center border-b border-gray-800 pb-4 mb-2"
+        >
+            <div class="flex items-center gap-2">
+                <span
+                    id="statusDot"
+                    class="h-3 w-3 rounded-full bg-red-500 animate-pulse"
+                ></span>
+                <h1 class="text-lg font-bold tracking-wide">
+                    Holograma UNEV — Secure Chat
+                </h1>
+            </div>
+            <span
+                class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded-md border border-gray-750"
+                >AES-256 Protegido</span
+            >
+        </header>
+
+        <main
+            class="w-full max-w-3xl flex-1 flex flex-col bg-gray-800/50 border border-gray-800 rounded-2xl overflow-hidden shadow-xl backdrop-blur-sm"
+        >
+            <div
+                id="chat-messages"
+                class="flex-1 overflow-y-auto p-4 space-y-4 max-h-[70vh] min-h-[400px]"
+            >
+                <div class="flex justify-start">
+                    <span
+                        class="bg-gray-800 border border-gray-750 text-gray-200 rounded-2xl rounded-tl-none max-w-xl p-3 shadow-sm text-sm"
+                    >
+                        ¡Entorno seguro inicializado! Desbloquea la aplicación
+                        para empezar a chatear.
+                    </span>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-gray-800 bg-gray-900/60 flex gap-2">
+                <input
+                    id="chat-input"
+                    type="text"
+                    disabled
+                    class="flex-1 p-3 bg-gray-900 border border-gray-750 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500 text-sm disabled:opacity-50"
+                    placeholder="Desbloquea el chat primero..."
+                />
+                <button
+                    id="sendBtn"
+                    disabled
+                    class="px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl transition-all disabled:opacity-50 text-sm"
+                >
+                    Enviar
+                </button>
+            </div>
+        </main>
+
+        <footer class="text-xs text-gray-600 mt-4">
+            Código seguro — La clave real nunca se expone en texto plano en
+            GitHub.
+        </footer>
+
+        <script>
+            // ---------- CONFIGURACIÓN DE CIFRADO ----------
+
+            /* PASO 1: Genera tu API Key cifrada.
+               Para obtener tu código cifrado, ve a la página https://bitwiseshiftleft.github.io/sjcl/demo/
+               O abre la consola de tu navegador (F12) y escribe:
+               CryptoJS.AES.encrypt("TU_API_KEY_REAL_DE_OPENROUTER", "TU_CONTRASEÑA_SECRETA").toString()
+
+               PASO 2: Pega el resultado largo que te dé entre las comillas de abajo:
+            */
+            const ENCRYPTED_API_KEY =
+                "U2FsdGVkX1+vG0/BqG+30kL61U5K/m7ZJc4bS6A1+98w0gLzS2Sj7r0/Y4tA3uI7bZ6Mw1Fh9pXvN4G2m1B3vX7C0O8q9rT4vM7P2X4m1z6b5v4=";
+
+            let apiKey = null;
+            let chatHistory = [];
+
+            const passwordPrompt = document.getElementById("passwordPrompt");
+            const passwordInput = document.getElementById("passwordInput");
+            const unlockBtn = document.getElementById("unlockBtn");
+            const chatInput = document.getElementById("chat-input");
+            const sendBtn = document.getElementById("sendBtn");
+            const chatMessages = document.getElementById("chat-messages");
+            const statusDot = document.getElementById("statusDot");
+
+            // ---------- LÓGICA DE DESBLOQUEO ----------
+            unlockBtn.addEventListener("click", () => {
+                const password = passwordInput.value.trim();
+                if (!password) return alert("Introduce tu contraseña.");
+
+                try {
+                    // Intentamos descifrar la clave usando la contraseña introducida
+                    const bytes = CryptoJS.AES.decrypt(
+                        ENCRYPTED_API_KEY,
+                        password,
+                    );
+                    const decryptedKey = bytes.toString(CryptoJS.enc.Utf8);
+
+                    // Si empieza con "sk-", el descifrado fue correcto
+                    if (decryptedKey && decryptedKey.startsWith("sk-")) {
+                        apiKey = decryptedKey;
+
+                        // Habilitar la interfaz
+                        passwordPrompt.classList.add("hidden");
+                        chatInput.removeAttribute("disabled");
+                        sendBtn.removeAttribute("disabled");
+                        chatInput.placeholder = "Escribe un mensaje...";
+                        statusDot.classList.remove("bg-red-500");
+                        statusDot.classList.add("bg-emerald-500");
+
+                        appendMessage(
+                            "🔓 Sistema descifrado con éxito. Conexión segura establecida con OpenRouter.",
+                        );
+                    } else {
+                        alert(
+                            "Contraseña incorrecta. El contenido descifrado no es válido.",
+                        );
+                    }
+                } catch (e) {
+                    alert(
+                        "Error crítico al descifrar. Asegúrate de usar la contraseña correcta.",
+                    );
+                }
+            });
+
+            passwordInput.addEventListener("keypress", (e) => {
+                if (e.key === "Enter") unlockBtn.click();
+            });
+
+            // ---------- INTERFAZ DE CHAT ----------
+            function appendMessage(text, isUser = false) {
+                const div = document.createElement("div");
+                div.className = isUser
+                    ? "flex justify-end"
+                    : "flex justify-start";
+                const span = document.createElement("span");
+                span.className = isUser
+                    ? "bg-indigo-600 text-white rounded-2xl rounded-tr-none max-w-xl p-3 shadow-md text-sm whitespace-pre-wrap"
+                    : "bg-gray-800 border border-gray-750 text-gray-100 rounded-2xl rounded-tl-none max-w-xl p-3 shadow-sm text-sm whitespace-pre-wrap";
+                span.textContent = text;
+                div.appendChild(span);
+                chatMessages.appendChild(div);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            // ---------- CONEXIÓN STREAMING ----------
+            async function streamOpenRouterResponse() {
+                const url = "https://openrouter.ai/api/v1/chat/completions";
+                const payload = {
+                    model: "openrouter/auto",
+                    messages: chatHistory,
+                    stream: true,
+                };
+
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${apiKey}`,
+                        "HTTP-Referer": window.location.href,
+                        "X-Title": "Personal Encrypted Agent",
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!response.ok) {
+                    const errorMsg = await response.text();
+                    throw new Error(errorMsg);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+
+                const botDiv = document.createElement("div");
+                botDiv.className = "flex justify-start";
+                const botContent = document.createElement("span");
+                botContent.className =
+                    "bg-gray-800 border border-gray-750 text-gray-100 rounded-2xl rounded-tl-none max-w-xl p-3 shadow-sm text-sm whitespace-pre-wrap";
+                botDiv.appendChild(botContent);
+                chatMessages.appendChild(botDiv);
+
+                let aiResponseText = "";
+                let partialChunk = "";
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    partialChunk += decoder.decode(value, { stream: true });
+                    const lines = partialChunk.split("\n");
+                    partialChunk = lines.pop();
+
+                    for (const line of lines) {
+                        const cleanedLine = line.trim();
+                        if (!cleanedLine || cleanedLine === "data: [DONE]")
+                            continue;
+
+                        if (cleanedLine.startsWith("data: ")) {
+                            try {
+                                const jsonStr = cleanedLine.slice(6);
+                                const parsed = JSON.parse(jsonStr);
+                                const token =
+                                    parsed.choices[0]?.delta?.content || "";
+
+                                if (token) {
+                                    aiResponseText += token;
+                                    botContent.textContent = aiResponseText;
+                                    chatMessages.scrollTop =
+                                        chatMessages.scrollHeight;
+                                }
+                            } catch (e) {}
+                        }
+                    }
+                }
+
+                if (aiResponseText) {
+                    chatHistory.push({
+                        role: "assistant",
+                        content: aiResponseText,
+                    });
+                }
+            }
+
+            // ---------- CONTROLADOR DE ENVÍO ----------
+            async function sendMessage() {
+                const userText = chatInput.value.trim();
+                if (!userText) return;
+
+                appendMessage(userText, true);
+                chatInput.value = "";
+                chatHistory.push({ role: "user", content: userText });
+
+                const loaderDiv = document.createElement("div");
+                loaderDiv.className = "flex justify-start";
+                loaderDiv.innerHTML = `<span class="bg-gray-800 border border-gray-750 text-gray-400 rounded-2xl rounded-tl-none p-3 text-sm animate-pulse">Escribiendo...</span>`;
+                chatMessages.appendChild(loaderDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                try {
+                    await streamOpenRouterResponse();
+                    loaderDiv.remove();
+                } catch (e) {
+                    loaderDiv.remove();
+                    appendMessage(
+                        "Error: Imposible completar la solicitud. Verifica tu saldo de OpenRouter.",
+                    );
+                    console.error(e);
+                }
+            }
+
+            sendBtn.addEventListener("click", sendMessage);
+            chatInput.addEventListener("keypress", (e) => {
+                if (e.key === "Enter") sendMessage();
+            });
+        </script>
+    </body>
+</html>
