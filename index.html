@@ -2,65 +2,136 @@
 <html lang="es">
     <head>
         <meta charset="UTF-8" />
-        <title>Chat Interactivo Protegido — OpenRouter</title>
+        <title>Panel de Control — IA Colaborativa</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
         <style>
-            /* Estilos personalizados para los bloques de código que genere la IA */
-            .prose pre {
-                background-color: #111827 !important; /* gray-900 */
+            /* Renderizado de Markdown Profesional (Estilo GitHub Dark / Tailwind Prose) */
+            .prose-custom {
+                color: #e5e7eb; /* gray-200 */
+                line-height: 1.6;
+            }
+            .prose-custom p {
+                margin-bottom: 0.75rem;
+            }
+            .prose-custom p:last-child {
+                margin-bottom: 0;
+            }
+            /* Bloques de Código */
+            .prose-custom pre {
+                background-color: #0b0f19 !important; /* Fondo negro profundo */
                 padding: 1rem;
                 border-radius: 0.5rem;
-                margin-top: 0.5rem;
-                margin-bottom: 0.5rem;
+                margin: 0.75rem 0;
                 overflow-x: auto;
-                border: 1px solid #374151; /* gray-750 / 700 */
+                border: 1px solid #374151; /* gray-700 */
+                display: block;
             }
-            .prose code {
+            .prose-custom code {
                 font-family:
                     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
                     monospace;
                 color: #f3f4f6; /* gray-100 */
-                font-size: 0.875rem;
+                font-size: 0.85rem;
+                background-color: #1f2937; /* gray-800 para código en línea */
+                padding: 0.125rem 0.25rem;
+                border-radius: 0.25rem;
             }
-            .prose p {
+            .prose-custom pre code {
+                background-color: transparent !important;
+                padding: 0;
+                border-radius: 0;
+            }
+            /* Elementos de Estructura Markdown */
+            .prose-custom h1,
+            .prose-custom h2,
+            .prose-custom h3 {
+                color: #ffffff;
+                font-weight: 600;
+                margin-top: 1rem;
                 margin-bottom: 0.5rem;
             }
-            .prose p:last-child {
-                margin-bottom: 0;
+            .prose-custom h1 {
+                font-size: 1.25rem;
+            }
+            .prose-custom h2 {
+                font-size: 1.15rem;
+            }
+            .prose-custom h3 {
+                font-size: 1.05rem;
+            }
+            .prose-custom ul {
+                list-style-type: disc;
+                margin-left: 1.25rem;
+                margin-bottom: 0.75rem;
+            }
+            .prose-custom ol {
+                list-style-type: decimal;
+                margin-left: 1.25rem;
+                margin-bottom: 0.75rem;
+            }
+            .prose-custom li {
+                margin-bottom: 0.25rem;
+            }
+            .prose-custom strong {
+                color: #ffffff;
+                font-weight: 700;
+            }
+            .prose-custom blockquote {
+                border-left: 4px solid #4f46e5; /* indigo-600 */
+                padding-left: 0.75rem;
+                color: #9ca3af; /* gray-400 */
+                font-style: italic;
+                margin: 0.75rem 0;
+            }
+
+            /* Ocultar barras de desplazamiento */
+            #chat-messages {
+                scrollbar-width: none; /* Firefox */
+                -ms-overflow-style: none; /* Internet Explorer 10+ */
+            }
+            #chat-messages::-webkit-scrollbar {
+                display: none; /* WebKit */
+            }
+            #chat-input {
+                scrollbar-width: none; /* Firefox */
+                -ms-overflow-style: none; /* Internet Explorer 10+ */
+            }
+            #chat-input::-webkit-scrollbar {
+                display: none; /* WebKit */
             }
         </style>
     </head>
     <body
-        class="bg-gray-900 min-h-screen flex flex-col items-center justify-between p-4 text-gray-100"
+        class="bg-gray-950 min-h-screen flex flex-col items-center justify-between font-sans text-gray-100 selection:bg-indigo-500/30 relative"
     >
         <div
             id="passwordPrompt"
-            class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+            class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4"
         >
             <div
-                class="bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm border border-gray-700"
+                class="bg-gray-900 rounded-xl shadow-2xl p-6 w-full max-w-sm border border-gray-800 relative"
             >
                 <h2
-                    class="text-xl font-semibold text-white mb-2 flex items-center gap-2"
+                    class="text-xl font-bold text-white mb-2 flex items-center gap-2"
                 >
                     🔒 Sistema Encriptado
                 </h2>
-                <p class="text-xs text-gray-400 mb-4">
-                    Introduce tu contraseña personal para descifrar la API Key
-                    de OpenRouter en memoria.
+                <p class="text-xs text-gray-450 mb-4 text-gray-400">
+                    Introduce tu contraseña para descifrar la clave
+                    criptográfica en memoria volátil.
                 </p>
                 <input
                     id="passwordInput"
                     type="password"
-                    class="w-full p-2.5 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 text-sm mb-4"
-                    placeholder="Contraseña de descifrado..."
+                    class="w-full p-3 bg-gray-950 border border-gray-850 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500 text-sm mb-4 border-gray-800"
+                    placeholder="Contraseña del entorno..."
                 />
                 <button
                     id="unlockBtn"
-                    class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors text-sm"
+                    class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-all text-sm shadow-lg shadow-indigo-600/20"
                 >
                     Desbloquear Entorno
                 </button>
@@ -68,53 +139,57 @@
         </div>
 
         <header
-            class="w-full max-w-3xl flex justify-between items-center border-b border-gray-800 pb-4 mb-2"
+            class="w-full max-w-2xl flex justify-between items-center border-b border-gray-900 px-4 py-3 bg-gray-950 sticky top-0 z-40"
         >
-            <div class="flex items-center gap-2">
-                <span
-                    id="statusDot"
-                    class="h-3 w-3 rounded-full bg-red-500 animate-pulse"
-                ></span>
-                <h1 class="text-lg font-bold tracking-wide">HydroTracker</h1>
+            <div class="flex items-center gap-3">
+                <h1 class="text-sm font-bold tracking-wider text-gray-200">
+                    WORKSPACE // CORE
+                </h1>
             </div>
             <span
-                class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded-md border border-gray-750"
-                >AES-256 Protegido</span
-            >
+                id="statusDot"
+                class="h-2.5 w-2.5 rounded-full bg-red-500 shadow-lg shadow-red-500/50"
+            ></span>
         </header>
 
         <main
-            class="w-full max-w-3xl flex-1 flex flex-col bg-gray-800/50 border border-gray-800 rounded-2xl overflow-hidden shadow-xl backdrop-blur-sm"
+            class="w-full max-w-2xl flex-1 flex flex-col bg-gray-900/30 border-x border-gray-900/60 overflow-hidden"
         >
             <div
                 id="chat-messages"
-                class="flex-1 overflow-y-auto p-4 space-y-4 max-h-[70vh] min-h-[400px]"
+                class="flex-1 overflow-y-auto px-4 py-6 space-y-6 max-h-[76vh] min-h-[450px]"
             >
                 <div class="flex justify-start">
-                    <span
-                        class="bg-gray-800 border border-gray-750 text-gray-200 rounded-2xl rounded-tl-none max-w-xl p-3 shadow-sm text-sm"
+                    <div
+                        class="bg-gray-900/40 border border-gray-900 rounded-xl p-3.5 max-w-[90%] text-xs text-gray-400 space-y-1"
                     >
-                        ¡Entorno seguro inicializado! Desbloquea la aplicación
-                        para empezar a chatear y adjuntar tus archivos.
-                    </span>
+                        <p class="font-semibold text-gray-300">
+                            🛡️ ENTORNO AISLADO ACTIVO
+                        </p>
+                        <p>
+                            Desbloquea el cifrado maestro para habilitar los
+                            sockets de comunicación y el buffer de lectura de
+                            archivos locales.
+                        </p>
+                    </div>
                 </div>
             </div>
 
             <div
-                class="p-4 border-t border-gray-800 bg-gray-900/60 flex gap-2 items-end"
+                class="p-4 border-t border-gray-900 bg-gray-950/80 backdrop-blur-md flex gap-2 items-end"
             >
                 <input
                     type="file"
                     id="file-input"
                     class="hidden"
-                    accept=".txt,.csv,.json,.dart,.js,.ts,.html,.css,.md"
+                    accept=".txt,.csv,.json,.dart,.js,.ts,.html,.css,.md,.yaml"
                 />
 
                 <button
                     id="attachBtn"
                     disabled
-                    class="px-3 py-3 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-gray-200 rounded-xl transition-all disabled:opacity-50 text-sm h-[46px] border border-gray-750 flex items-center justify-center"
-                    title="Adjuntar archivo de texto"
+                    class="px-3.5 py-3 bg-gray-900 hover:bg-gray-850 text-gray-400 hover:text-indigo-400 rounded-xl transition-all disabled:opacity-30 text-sm h-[46px] border border-gray-850 flex items-center justify-center focus:outline-none"
+                    title="Inyectar archivo de datos plano"
                 >
                     📎
                 </button>
@@ -123,27 +198,28 @@
                     id="chat-input"
                     disabled
                     rows="1"
-                    class="flex-1 p-3 bg-gray-900 border border-gray-750 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500 text-sm disabled:opacity-50 resize-none overflow-y-auto max-h-32"
-                    placeholder="Desbloquea el chat primero..."
+                    class="flex-1 p-3 bg-gray-900 border border-gray-855 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500 text-sm disabled:opacity-30 resize-none overflow-y-auto max-h-32 leading-relaxed"
+                    placeholder="Esperando desbloqueo maestro..."
                 ></textarea>
 
                 <button
                     id="sendBtn"
                     disabled
-                    class="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-all disabled:opacity-50 text-sm h-[46px]"
+                    class="px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl transition-all disabled:opacity-30 text-sm h-[46px] shadow-lg shadow-indigo-600/10 active:scale-95 focus:outline-none"
                 >
                     Enviar
                 </button>
             </div>
         </main>
 
-        <footer class="text-xs text-gray-600 mt-4">
-            Código seguro — La clave real nunca se expone en texto plano en
-            GitHub.
+        <footer
+            class="w-full max-w-2xl text-center text-[10px] font-mono tracking-tight text-gray-600 py-3 border-t border-gray-950 bg-gray-950 relative"
+        >
+            SECURE BUFFER // MEMORY LOGS NEVER EXPOSED TO EXTERNAL HOSTS
         </footer>
 
         <script>
-            // ---------- CONFIGURACIÓN DE CIFRADO ----------
+            // ---------- GESTIÓN DE SEGURIDAD ----------
             const ENCRYPTED_API_KEY =
                 "U2FsdGVkX18C8u6LePjq0w3ZZmXlzFCNrIH25+GkdZNlylXn64PwphpQkpFhR3nwz/XLE1dmi1FdpL4tJx4nqVw65krYOmvZ8MXAfwpt4uNML4tnGWNvtg+bioeA1E5P";
 
@@ -160,16 +236,13 @@
             const fileInput = document.getElementById("file-input");
             const attachBtn = document.getElementById("attachBtn");
 
-            // Configurar 'marked' para saltos de línea automáticos
-            marked.setOptions({
-                breaks: true,
-                gfm: true,
-            });
+            // Propiedades estrictas de marcado markdown
+            marked.setOptions({ breaks: true, gfm: true });
 
-            // ---------- LÓGICA DE DESBLOQUEO ----------
+            // ---------- LÓGICA DE ACTIVACIÓN ----------
             unlockBtn.addEventListener("click", () => {
                 const password = passwordInput.value.trim();
-                if (!password) return alert("Introduce tu contraseña.");
+                if (!password) return alert("Parámetro requerido.");
 
                 try {
                     const bytes = CryptoJS.AES.decrypt(
@@ -185,23 +258,21 @@
                         chatInput.removeAttribute("disabled");
                         sendBtn.removeAttribute("disabled");
                         attachBtn.removeAttribute("disabled");
-                        chatInput.placeholder =
-                            "Escribe un mensaje o adjunta un archivo...";
+                        chatInput.placeholder = "Consola de comando lista...";
                         statusDot.classList.remove("bg-red-500");
-                        statusDot.classList.add("bg-emerald-500");
+                        statusDot.classList.add(
+                            "bg-emerald-500",
+                            "shadow-emerald-500/50",
+                        );
 
                         appendMessage(
-                            "🔓 Sistema descifrado con éxito. Conexión segura establecida con OpenRouter.",
+                            "🔓 Descifrado correcto. Canal seguro abierto con OpenRouter API.",
                         );
                     } else {
-                        alert(
-                            "Contraseña incorrecta. El contenido descifrado no es válido.",
-                        );
+                        alert("Firma inválida. Comprobación hash corrupta.");
                     }
                 } catch (e) {
-                    alert(
-                        "Error crítico al descifrar. Asegúrate de usar la contraseña correcta.",
-                    );
+                    alert("Excepción crítica en descifrado AES.");
                 }
             });
 
@@ -209,10 +280,8 @@
                 if (e.key === "Enter") unlockBtn.click();
             });
 
-            // ---------- LÓGICA PARA LEER ARCHIVOS LOCALES ----------
-            attachBtn.addEventListener("click", () => {
-                fileInput.click();
-            });
+            // ---------- PARSER BUFFER DE ARCHIVOS ----------
+            attachBtn.addEventListener("click", () => fileInput.click());
 
             fileInput.addEventListener("change", (e) => {
                 const file = e.target.files[0];
@@ -221,44 +290,58 @@
                 const reader = new FileReader();
                 reader.onload = (event) => {
                     const contenido = event.target.result;
-                    chatInput.value += `\n[Archivo adjunto: ${file.name}]\n\`\`\`\n${contenido}\n\`\`\`\n`;
+                    chatInput.value += `\n[Archivo local adjunto: ${file.name}]\n\`\`\`\n${contenido}\n\`\`\`\n`;
                     chatInput.style.height = "auto";
                     chatInput.style.height =
                         Math.min(chatInput.scrollHeight, 128) + "px";
                     chatInput.focus();
                 };
                 reader.onerror = () =>
-                    alert("No se pudo leer el archivo seleccionado.");
+                    alert("Fallo de E/S en lectura de archivo.");
                 reader.readAsText(file, "UTF-8");
                 fileInput.value = "";
             });
 
-            // ---------- INTERFAZ DE CHAT CON INCORPORACIÓN DE MARKDOWN ----------
+            // ---------- CONTROL DE COMPONENTES INTERNOS (UI NO MINIMALISTA) ----------
             function appendMessage(text, isUser = false) {
-                const div = document.createElement("div");
-                div.className = isUser
+                const itemContainer = document.createElement("div");
+                itemContainer.className = "space-y-1.5 w-full";
+
+                // Cabecera identificadora de rol
+                const roleHeader = document.createElement("div");
+                roleHeader.className = isUser
+                    ? "text-xs font-bold text-indigo-400 text-right pr-1"
+                    : "text-xs font-bold text-emerald-400 pl-1";
+                roleHeader.textContent = isUser
+                    ? "👤 TÚ"
+                    : "🤖 IA COLABORADORA";
+
+                const wrapper = document.createElement("div");
+                wrapper.className = isUser
                     ? "flex justify-end"
                     : "flex justify-start";
 
-                const span = document.createElement("span");
-                // Añadimos la clase 'prose' para identificar estilos controlados
-                span.className = isUser
-                    ? "bg-indigo-600 text-white rounded-2xl rounded-tr-none max-w-xl p-3 shadow-md text-sm prose"
-                    : "bg-gray-800 border border-gray-750 text-gray-100 rounded-2xl rounded-tl-none max-w-xl p-3 shadow-sm text-sm prose";
+                const bodyBox = document.createElement("div");
+                bodyBox.className = isUser
+                    ? "bg-indigo-950/40 border border-indigo-900 text-gray-100 rounded-xl rounded-tr-none p-3.5 max-w-[92%] text-sm prose-custom shadow-md"
+                    : "bg-gray-900 border border-gray-855 text-gray-200 rounded-xl rounded-tl-none p-3.5 max-w-[92%] text-sm prose-custom shadow-sm";
 
-                // Si es del usuario, texto plano. Si es del Bot de IA, procesamos bloques de código mediante marked
                 if (isUser) {
-                    span.textContent = text;
+                    bodyBox.textContent = text;
+                    bodyBox.style.whiteSpace = "pre-wrap";
                 } else {
-                    span.innerHTML = marked.parse(text);
+                    bodyBox.innerHTML = marked.parse(text);
                 }
 
-                div.appendChild(span);
-                chatMessages.appendChild(div);
+                wrapper.appendChild(bodyBox);
+                itemContainer.appendChild(roleHeader);
+                itemContainer.appendChild(wrapper);
+
+                chatMessages.appendChild(itemContainer);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
 
-            // ---------- CONEXIÓN STREAMING MEJORADA PARA EN VIVO ----------
+            // ---------- PIPELINE DE CONEXIÓN (STREAMING DE DATOS) ----------
             async function streamOpenRouterResponse() {
                 const url = "https://openrouter.ai/api/v1/chat/completions";
 
@@ -266,7 +349,7 @@
                     {
                         role: "system",
                         content:
-                            "REGLAS ESTRUCTURALES OBLIGATORIAS:\n1. Eres un formateador de código Dart/Flutter estricto de nivel senior. Tu prioridad absoluta es mantener la legibilidad vertical.\n2. NUNCA mezcles en una misma línea horizontal una instrucción de código junto con un comentario. Todo comentario debe estar en su propia línea independiente.\n3. Es OBLIGATORIO que envuelvas cada bloque de código dentro de bloques de código Markdown usando las tres comillas invertidas junto al lenguaje correspondiente (ej: ```dart ... ```, ```html ... ```).",
+                            "REGLAS ESTRUCTURALES OBLIGATORIAS:\n1. Eres un formateador de código Dart/Flutter estricto de nivel senior. Tu prioridad absoluta es mantener la legibilidad vertical.\n2. NUNCA mezcles en una misma línea horizontal una instrucción de código junto con un comentario.\n3. Todo código devuelto debe ir estructurado perfectamente en Markdown usando bloques formales (ej: ```dart, ```html, ```json) especificando el lenguaje de manera clara para el usuario.",
                     },
                     ...chatHistory,
                 ];
@@ -283,7 +366,7 @@
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${apiKey}`,
                         "HTTP-Referer": window.location.href,
-                        "X-Title": "Personal Encrypted Agent",
+                        "X-Title": "Secure Workspace Agent",
                     },
                     body: JSON.stringify(payload),
                 });
@@ -296,13 +379,26 @@
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder("utf-8");
 
-                const botDiv = document.createElement("div");
-                botDiv.className = "flex justify-start";
-                const botContent = document.createElement("span");
-                botContent.className =
-                    "bg-gray-800 border border-gray-750 text-gray-100 rounded-2xl rounded-tl-none max-w-xl p-3 shadow-sm text-sm prose";
-                botDiv.appendChild(botContent);
-                chatMessages.appendChild(botDiv);
+                // Contenedor en vivo estructurado con su header correspondiente
+                const itemContainer = document.createElement("div");
+                itemContainer.className = "space-y-1.5 w-full";
+
+                const roleHeader = document.createElement("div");
+                roleHeader.className =
+                    "text-xs font-bold text-emerald-400 pl-1";
+                roleHeader.textContent = "🤖 IA COLABORADORA";
+
+                const wrapper = document.createElement("div");
+                wrapper.className = "flex justify-start";
+
+                const bodyBox = document.createElement("div");
+                bodyBox.className =
+                    "bg-gray-900 border border-gray-855 text-gray-200 rounded-xl rounded-tl-none p-3.5 max-w-[92%] text-sm prose-custom shadow-sm";
+
+                wrapper.appendChild(bodyBox);
+                itemContainer.appendChild(roleHeader);
+                itemContainer.appendChild(wrapper);
+                chatMessages.appendChild(itemContainer);
 
                 let aiResponseText = "";
                 let partialChunk = "";
@@ -329,8 +425,7 @@
 
                                 if (token) {
                                     aiResponseText += token;
-                                    // Renderizamos el Markdown en tiempo real mientras escribe la IA
-                                    botContent.innerHTML =
+                                    bodyBox.innerHTML =
                                         marked.parse(aiResponseText);
                                     chatMessages.scrollTop =
                                         chatMessages.scrollHeight;
@@ -348,7 +443,7 @@
                 }
             }
 
-            // ---------- CONTROLADOR DE ENVÍO ----------
+            // ---------- HANDLER DEL SUBMIT ----------
             async function sendMessage() {
                 const userText = chatInput.value;
                 if (!userText.trim()) return;
@@ -358,19 +453,23 @@
                 chatInput.style.height = "auto";
                 chatHistory.push({ role: "user", content: userText });
 
-                const loaderDiv = document.createElement("div");
-                loaderDiv.className = "flex justify-start";
-                loaderDiv.innerHTML = `<span class="bg-gray-800 border border-gray-750 text-gray-400 rounded-2xl rounded-tl-none p-3 text-sm animate-pulse">Escribiendo...</span>`;
-                chatMessages.appendChild(loaderDiv);
+                // Loader funcional no minimalista
+                const loaderItem = document.createElement("div");
+                loaderItem.className = "space-y-1 w-full animate-pulse";
+                loaderItem.innerHTML = `
+                    <div class="text-xs font-bold text-gray-500 pl-1">🤖 PROCESANDO SYNC...</div>
+                    <div class="flex justify-start"><div class="bg-gray-900/60 border border-gray-900 text-gray-400 rounded-xl rounded-tl-none p-3 text-xs font-mono">EJECUTANDO FLUJO STREAMING EN COMPILADOR...</div></div>
+                `;
+                chatMessages.appendChild(loaderItem);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
 
                 try {
                     await streamOpenRouterResponse();
-                    loaderDiv.remove();
+                    loaderItem.remove();
                 } catch (e) {
-                    loaderDiv.remove();
+                    loaderItem.remove();
                     appendMessage(
-                        "Error: Imposible completar la solicitud. Verifica tu conexión.",
+                        "❌ Error de comunicación de red. Revisa tus tokens o balance de OpenRouter.",
                     );
                     console.error(e);
                 }
