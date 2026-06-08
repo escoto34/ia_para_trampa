@@ -5,6 +5,33 @@
         <title>Chat Interactivo Protegido — OpenRouter</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+        <style>
+            /* Estilos personalizados para los bloques de código que genere la IA */
+            .prose pre {
+                background-color: #111827 !important; /* gray-900 */
+                padding: 1rem;
+                border-radius: 0.5rem;
+                margin-top: 0.5rem;
+                margin-bottom: 0.5rem;
+                overflow-x: auto;
+                border: 1px solid #374151; /* gray-750 / 700 */
+            }
+            .prose code {
+                font-family:
+                    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+                    monospace;
+                color: #f3f4f6; /* gray-100 */
+                font-size: 0.875rem;
+            }
+            .prose p {
+                margin-bottom: 0.5rem;
+            }
+            .prose p:last-child {
+                margin-bottom: 0;
+            }
+        </style>
     </head>
     <body
         class="bg-gray-900 min-h-screen flex flex-col items-center justify-between p-4 text-gray-100"
@@ -48,7 +75,7 @@
                     id="statusDot"
                     class="h-3 w-3 rounded-full bg-red-500 animate-pulse"
                 ></span>
-                <h1 class="text-lg font-bold tracking-wide"></h1>
+                <h1 class="text-lg font-bold tracking-wide">HydroTracker</h1>
             </div>
             <span
                 class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded-md border border-gray-750"
@@ -68,7 +95,7 @@
                         class="bg-gray-800 border border-gray-750 text-gray-200 rounded-2xl rounded-tl-none max-w-xl p-3 shadow-sm text-sm"
                     >
                         ¡Entorno seguro inicializado! Desbloquea la aplicación
-                        para empezar a chatear.
+                        para empezar a chatear y adjuntar tus archivos.
                     </span>
                 </div>
             </div>
@@ -76,6 +103,22 @@
             <div
                 class="p-4 border-t border-gray-800 bg-gray-900/60 flex gap-2 items-end"
             >
+                <input
+                    type="file"
+                    id="file-input"
+                    class="hidden"
+                    accept=".txt,.csv,.json,.dart,.js,.ts,.html,.css,.md"
+                />
+
+                <button
+                    id="attachBtn"
+                    disabled
+                    class="px-3 py-3 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-gray-200 rounded-xl transition-all disabled:opacity-50 text-sm h-[46px] border border-gray-750 flex items-center justify-center"
+                    title="Adjuntar archivo de texto"
+                >
+                    📎
+                </button>
+
                 <textarea
                     id="chat-input"
                     disabled
@@ -83,10 +126,11 @@
                     class="flex-1 p-3 bg-gray-900 border border-gray-750 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500 text-sm disabled:opacity-50 resize-none overflow-y-auto max-h-32"
                     placeholder="Desbloquea el chat primero..."
                 ></textarea>
+
                 <button
                     id="sendBtn"
                     disabled
-                    class="px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl transition-all disabled:opacity-50 text-sm h-[46px]"
+                    class="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-all disabled:opacity-50 text-sm h-[46px]"
                 >
                     Enviar
                 </button>
@@ -100,14 +144,6 @@
 
         <script>
             // ---------- CONFIGURACIÓN DE CIFRADO ----------
-
-            /* PASO 1: Genera tu API Key cifrada.
-               Para obtener tu código cifrado, ve a la página https://bitwiseshiftleft.github.io/sjcl/demo/
-               O abre la consola de tu navegador (F12) y escribe:
-               CryptoJS.AES.encrypt("TU_API_KEY_REAL_DE_OPENROUTER", "TU_CONTRASEÑA_SECRETA").toString()
-
-               PASO 2: Pega el resultado largo que te dé entre las comillas de abajo:
-            */
             const ENCRYPTED_API_KEY =
                 "U2FsdGVkX18C8u6LePjq0w3ZZmXlzFCNrIH25+GkdZNlylXn64PwphpQkpFhR3nwz/XLE1dmi1FdpL4tJx4nqVw65krYOmvZ8MXAfwpt4uNML4tnGWNvtg+bioeA1E5P";
 
@@ -121,6 +157,14 @@
             const sendBtn = document.getElementById("sendBtn");
             const chatMessages = document.getElementById("chat-messages");
             const statusDot = document.getElementById("statusDot");
+            const fileInput = document.getElementById("file-input");
+            const attachBtn = document.getElementById("attachBtn");
+
+            // Configurar 'marked' para saltos de línea automáticos
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+            });
 
             // ---------- LÓGICA DE DESBLOQUEO ----------
             unlockBtn.addEventListener("click", () => {
@@ -128,22 +172,21 @@
                 if (!password) return alert("Introduce tu contraseña.");
 
                 try {
-                    // Intentamos descifrar la clave usando la contraseña introducida
                     const bytes = CryptoJS.AES.decrypt(
                         ENCRYPTED_API_KEY,
                         password,
                     );
                     const decryptedKey = bytes.toString(CryptoJS.enc.Utf8);
 
-                    // Si empieza con "sk-", el descifrado fue correcto
                     if (decryptedKey && decryptedKey.startsWith("sk-")) {
                         apiKey = decryptedKey;
 
-                        // Habilitar la interfaz
                         passwordPrompt.classList.add("hidden");
                         chatInput.removeAttribute("disabled");
                         sendBtn.removeAttribute("disabled");
-                        chatInput.placeholder = "Escribe un mensaje...";
+                        attachBtn.removeAttribute("disabled");
+                        chatInput.placeholder =
+                            "Escribe un mensaje o adjunta un archivo...";
                         statusDot.classList.remove("bg-red-500");
                         statusDot.classList.add("bg-emerald-500");
 
@@ -166,23 +209,56 @@
                 if (e.key === "Enter") unlockBtn.click();
             });
 
-            // ---------- INTERFAZ DE CHAT ----------
+            // ---------- LÓGICA PARA LEER ARCHIVOS LOCALES ----------
+            attachBtn.addEventListener("click", () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener("change", (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const contenido = event.target.result;
+                    chatInput.value += `\n[Archivo adjunto: ${file.name}]\n\`\`\`\n${contenido}\n\`\`\`\n`;
+                    chatInput.style.height = "auto";
+                    chatInput.style.height =
+                        Math.min(chatInput.scrollHeight, 128) + "px";
+                    chatInput.focus();
+                };
+                reader.onerror = () =>
+                    alert("No se pudo leer el archivo seleccionado.");
+                reader.readAsText(file, "UTF-8");
+                fileInput.value = "";
+            });
+
+            // ---------- INTERFAZ DE CHAT CON INCORPORACIÓN DE MARKDOWN ----------
             function appendMessage(text, isUser = false) {
                 const div = document.createElement("div");
                 div.className = isUser
                     ? "flex justify-end"
                     : "flex justify-start";
+
                 const span = document.createElement("span");
+                // Añadimos la clase 'prose' para identificar estilos controlados
                 span.className = isUser
-                    ? "bg-indigo-600 text-white rounded-2xl rounded-tr-none max-w-xl p-3 shadow-md text-sm whitespace-pre-wrap"
-                    : "bg-gray-800 border border-gray-750 text-gray-100 rounded-2xl rounded-tl-none max-w-xl p-3 shadow-sm text-sm whitespace-pre-wrap";
-                span.textContent = text;
+                    ? "bg-indigo-600 text-white rounded-2xl rounded-tr-none max-w-xl p-3 shadow-md text-sm prose"
+                    : "bg-gray-800 border border-gray-750 text-gray-100 rounded-2xl rounded-tl-none max-w-xl p-3 shadow-sm text-sm prose";
+
+                // Si es del usuario, texto plano. Si es del Bot de IA, procesamos bloques de código mediante marked
+                if (isUser) {
+                    span.textContent = text;
+                } else {
+                    span.innerHTML = marked.parse(text);
+                }
+
                 div.appendChild(span);
                 chatMessages.appendChild(div);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
 
-            // ---------- CONEXIÓN STREAMING ----------
+            // ---------- CONEXIÓN STREAMING MEJORADA PARA EN VIVO ----------
             async function streamOpenRouterResponse() {
                 const url = "https://openrouter.ai/api/v1/chat/completions";
 
@@ -190,7 +266,7 @@
                     {
                         role: "system",
                         content:
-                            "REGLAS ESTRUCTURALES OBLIGATORIAS:\n1. Eres un formateador de código Dart/Flutter estricto de nivel senior. Tu prioridad absoluta es mantener la legibilidad vertical.\n2. NUNCA mezcles en una misma línea horizontal una instrucción de código (ej: 'Future<int> funcion() async {') junto con un comentario de tipo '//'. Todo comentario debe estar en su propia línea independiente arriba o abajo del código.\n3. Si detectas comentarios compactados horizontalmente en el prompt, tu deber es separarlos e insertar saltos de línea ('\\n') obligatorios para restaurar la estructura original limpia.\n4. Respeta de manera idéntica los comentarios originales (ej: '// TODO', '// Pistas:'), no elimines ningún renglón vacío original y no agregues comentarios de tu propia autoría.",
+                            "REGLAS ESTRUCTURALES OBLIGATORIAS:\n1. Eres un formateador de código Dart/Flutter estricto de nivel senior. Tu prioridad absoluta es mantener la legibilidad vertical.\n2. NUNCA mezcles en una misma línea horizontal una instrucción de código junto con un comentario. Todo comentario debe estar en su propia línea independiente.\n3. Es OBLIGATORIO que envuelvas cada bloque de código dentro de bloques de código Markdown usando las tres comillas invertidas junto al lenguaje correspondiente (ej: ```dart ... ```, ```html ... ```).",
                     },
                     ...chatHistory,
                 ];
@@ -224,7 +300,7 @@
                 botDiv.className = "flex justify-start";
                 const botContent = document.createElement("span");
                 botContent.className =
-                    "bg-gray-800 border border-gray-750 text-gray-100 rounded-2xl rounded-tl-none max-w-xl p-3 shadow-sm text-sm whitespace-pre-wrap";
+                    "bg-gray-800 border border-gray-750 text-gray-100 rounded-2xl rounded-tl-none max-w-xl p-3 shadow-sm text-sm prose";
                 botDiv.appendChild(botContent);
                 chatMessages.appendChild(botDiv);
 
@@ -253,7 +329,9 @@
 
                                 if (token) {
                                     aiResponseText += token;
-                                    botContent.textContent = aiResponseText;
+                                    // Renderizamos el Markdown en tiempo real mientras escribe la IA
+                                    botContent.innerHTML =
+                                        marked.parse(aiResponseText);
                                     chatMessages.scrollTop =
                                         chatMessages.scrollHeight;
                                 }
@@ -292,7 +370,7 @@
                 } catch (e) {
                     loaderDiv.remove();
                     appendMessage(
-                        "Error: Imposible completar la solicitud. Verifica tu saldo de OpenRouter.",
+                        "Error: Imposible completar la solicitud. Verifica tu conexión.",
                     );
                     console.error(e);
                 }
