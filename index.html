@@ -126,7 +126,7 @@
                 <input
                     id="passwordInput"
                     type="password"
-                    class="w-full p-3 bg-gray-950 border border-gray-850 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500 text-sm mb-4 border-gray-800"
+                    class="w-full p-3 bg-gray-950 border border-gray-855 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500 text-sm mb-4 border-gray-800"
                     placeholder="Contraseña del entorno..."
                 />
                 <button
@@ -145,10 +145,11 @@
                 id="statusDot"
                 class="h-2.5 w-2.5 rounded-full bg-red-500 shadow-lg shadow-red-500/50"
             ></span>
+            <div></div>
         </header>
 
         <main
-            class="w-full flex-1 flex flex-col bg-gray-900/30 border-x border-gray-900/60 overflow-hidden px-4 md:px-12 lg:px-24"
+            class="w-full flex-1 flex flex-col bg-gray-900/30 border-b border-gray-900/60 overflow-hidden px-4"
         >
             <div
                 id="chat-messages"
@@ -183,7 +184,7 @@
                 <button
                     id="attachBtn"
                     disabled
-                    class="px-3.5 py-3 bg-gray-900 hover:bg-gray-850 text-gray-400 hover:text-indigo-400 rounded-xl transition-all disabled:opacity-30 text-sm h-[46px] border border-gray-850 flex items-center justify-center focus:outline-none"
+                    class="px-3.5 py-3 bg-gray-900 hover:bg-gray-850 text-gray-400 hover:text-indigo-400 rounded-xl transition-all disabled:opacity-30 text-sm h-[46px] border border-gray-855 flex items-center justify-center focus:outline-none"
                     title="Inyectar archivo de datos plano"
                 >
                     📎
@@ -344,7 +345,7 @@
                     {
                         role: "system",
                         content:
-                            "REGLAS ESTRUCTURALES OBLIGATORIAS:\n1. Eres un formateador de código Dart/Flutter estricto de nivel senior. Tu prioridad absoluta es mantener la legibilidad vertical.\n2. NUNCA mezcles en una misma línea horizontal una instrucción de código junto con un comentario.\n3. Todo código devuelto debe ir estructurado perfectamente en Markdown usando bloques formales (ej: ```dart, ```html, ```json) especificando el lenguaje de manera clara para el usuario.",
+                            "REGLAS ESTRUCTURALES OBLIGATORIAS:\n1. Eres un formateador y corrector de código de nivel experto senior.\n2. PRESERVACIÓN ESTRICTA: Mantén intactos todos los comentarios originales del usuario (instrucciones, bloques de pistas, marcadores TODO). NUNCA los borres, resumas o alteres.\n3. INTEGRIDAD DE COMENTARIOS: No añadas explicaciones de texto adicionales o comentarios nuevos inventados dentro de los bloques de código.\n4. Todo código devuelto debe ir estructurado perfectamente en Markdown usando bloques formales (ej: ```dart, ```html, ```json) especificando el lenguaje de manera clara para el usuario.",
                     },
                     ...chatHistory,
                 ];
